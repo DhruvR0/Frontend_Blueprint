@@ -1,7 +1,7 @@
 "use client";
 
 import Image from "next/image";
-import { motion } from "framer-motion";
+import { motion, useMotionValue } from "framer-motion";
 import { useEffect, useRef, useState } from "react";
 
 const manifestoCopy = [
@@ -59,6 +59,16 @@ const windowBlueprint = [
 export default function AboutPage() {
   const canvasRef = useRef<HTMLDivElement>(null);
   const [isMobile, setIsMobile] = useState(false);
+  const [zIndexOrder, setZIndexOrder] = useState<string[]>([
+    "studio-photo",
+    "manifesto",
+  ]);
+  
+  // Create motion values for each window
+  const window1X = useMotionValue(0);
+  const window1Y = useMotionValue(0);
+  const window2X = useMotionValue(0);
+  const window2Y = useMotionValue(0);
 
   useEffect(() => {
     const handleResize = () => setIsMobile(window.innerWidth < 768);
@@ -66,6 +76,17 @@ export default function AboutPage() {
     window.addEventListener("resize", handleResize);
     return () => window.removeEventListener("resize", handleResize);
   }, []);
+
+  const handleFocus = (id: string) => {
+    setZIndexOrder((prev) => {
+      const newOrder = prev.filter((item) => item !== id);
+      return [...newOrder, id];
+    });
+  };
+
+  const getZIndex = (id: string) => {
+    return zIndexOrder.indexOf(id) + 10;
+  };
 
   return (
     <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
@@ -88,32 +109,44 @@ export default function AboutPage() {
         >
           <div className="absolute inset-0" />
           <div className="relative mx-auto flex h-full w-full max-w-6xl flex-col md:block">
-            {windowBlueprint.map((win) => (
-              <motion.div
-                key={win.id}
-                drag={!isMobile}
-                dragConstraints={canvasRef}
-                dragElastic={0.04}
-                dragMomentum={false}
-                initial={{
-                  opacity: 0,
-                  scale: 0.94,
-                  y: -40
-                }}
-                animate={{
-                  opacity: 1,
-                  scale: 1,
-                  y: 0
-                }}
-                className={`mb-6 rounded border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-sm ${
-                  isMobile ? "relative w-full" : "md:absolute"
-                }`}
-                style={{
-                  width: isMobile ? "100%" : win.width,
-                  height: isMobile ? "auto" : win.height,
-                  ...(isMobile ? {} : { top: win.position.top, left: win.position.left })
-                }}
-              >
+            {windowBlueprint.map((win, index) => {
+              const x = index === 0 ? window1X : window2X;
+              const y = index === 0 ? window1Y : window2Y;
+              
+              return (
+                <motion.div
+                  key={win.id}
+                  drag={!isMobile}
+                  dragConstraints={canvasRef}
+                  dragElastic={0.04}
+                  dragMomentum={false}
+                  whileDrag={{ cursor: "grabbing" }}
+                  onPointerDown={() => handleFocus(win.id)}
+                  initial={{
+                    opacity: 0,
+                    scale: 0.94,
+                    y: -40
+                  }}
+                  animate={{
+                    opacity: 1,
+                    scale: 1,
+                    y: 0
+                  }}
+                  className={`mb-6 rounded border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-sm ${
+                    isMobile ? "relative w-full" : "md:absolute"
+                  } ${!isMobile ? "cursor-move" : ""} select-none`}
+                  style={{
+                    width: isMobile ? "100%" : win.width,
+                    height: isMobile ? "auto" : win.height,
+                    zIndex: getZIndex(win.id),
+                    ...(isMobile ? {} : { 
+                      top: win.position.top, 
+                      left: win.position.left,
+                      x,
+                      y
+                    })
+                  }}
+                >
                 <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-[0.65rem] uppercase tracking-[0.35em]">
                   <span>{win.title}</span>
                   <div className="flex items-center gap-1">
@@ -124,7 +157,8 @@ export default function AboutPage() {
                 </div>
                 {win.render()}
               </motion.div>
-            ))}
+              );
+            })}
           </div>
         </main>
       </div>
