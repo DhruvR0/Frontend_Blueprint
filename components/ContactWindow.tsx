@@ -99,6 +99,23 @@ export default function ContactWindow({
 
   const contentArray = Array.isArray(content) ? content : [content];
 
+  const getTitleClasses = () => {
+    const base =
+      "font-bold uppercase text-white leading-none mb-4 transition-[font-size]";
+    if (id === "email" || id === "phone") {
+      return `text-[28px] md:text-[36px] lg:text-[44px] ${base}`;
+    }
+    return `text-[32px] md:text-[48px] lg:text-[64px] ${base}`;
+  };
+
+  const getBodyClasses = () => {
+    const base = "text-white/85 leading-tight transition-[font-size]";
+    if (id === "email" || id === "phone") {
+      return `text-[14px] md:text-[16px] ${base}`;
+    }
+    return `text-[16px] md:text-[18px] ${base}`;
+  };
+
   // Form state for address card
   const [formData, setFormData] = useState({
     name: "",
@@ -171,8 +188,9 @@ export default function ContactWindow({
         zIndex,
         position: "absolute",
       }}
+      // Window width tweaks per card (address gets the larger form layout)
       className={`bg-black border-2 border-white overflow-hidden select-none cursor-move ${
-        id === "address" ? "w-[600px]" : "w-[500px]"
+        id === "address" ? "w-[500px]" : "w-[400px]"
       } max-w-[90vw]`}
     >
       {/* Header */}
@@ -189,7 +207,6 @@ export default function ContactWindow({
           aria-label={`Close ${title}`}
           onPointerDown={(e) => e.stopPropagation()}
         >
-          ×
         </button>
       </div>
 
@@ -197,8 +214,11 @@ export default function ContactWindow({
       <div className="px-10 py-8 bg-black">
         {id === "address" ? (
           // Contact Form
-          <form onSubmit={handleFormSubmit} className="space-y-4">
-            <div>
+          <form
+            onSubmit={handleFormSubmit}
+            className="grid gap-4 md:grid-cols-2"
+          >
+            <div className="md:col-span-1">
               <label
                 htmlFor="name"
                 className="block text-xs uppercase tracking-wider text-white/70 mb-2"
@@ -217,7 +237,7 @@ export default function ContactWindow({
               />
             </div>
 
-            <div>
+            <div className="md:col-span-1">
               <label
                 htmlFor="mobile"
                 className="block text-xs uppercase tracking-wider text-white/70 mb-2"
@@ -236,7 +256,7 @@ export default function ContactWindow({
               />
             </div>
 
-            <div>
+            <div className="md:col-span-1">
               <label
                 htmlFor="email"
                 className="block text-xs uppercase tracking-wider text-white/70 mb-2"
@@ -255,7 +275,7 @@ export default function ContactWindow({
               />
             </div>
 
-            <div>
+            <div className="md:col-span-1">
               <label
                 htmlFor="message"
                 className="block text-xs uppercase tracking-wider text-white/70 mb-2"
@@ -269,7 +289,7 @@ export default function ContactWindow({
                 onChange={handleFormChange}
                 required
                 rows={4}
-                className="w-full px-4 py-2 bg-white/10 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/50 transition-colors resize-y"
+                className="w-full px-4 py-2 bg-white/10 border border-white/30 text-white placeholder-white/50 focus:outline-none focus:border-white/50 transition-colors resize-y md:h-full"
                 placeholder=""
               />
             </div>
@@ -277,7 +297,7 @@ export default function ContactWindow({
             <button
               type="submit"
               disabled={isSubmitting}
-              className="w-full bg-blue-900 hover:bg-blue-800 text-white uppercase tracking-wider py-3 px-6 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4"
+              className="w-full bg-blue-900 hover:bg-blue-800 text-white uppercase tracking-wider py-3 px-6 font-medium transition-colors disabled:opacity-50 disabled:cursor-not-allowed flex items-center justify-center gap-2 mt-4 md:col-span-2"
             >
               {isSubmitting ? (
                 "SENDING..."
@@ -302,12 +322,13 @@ export default function ContactWindow({
         ) : (
           // Regular content
           <>
-            <h2 className="text-[32px] md:text-[48px] lg:text-[64px] font-bold uppercase text-white leading-none mb-4">
+            {/* Email + phone cards get a tighter scale so they feel lighter */}
+            <h2 className={getTitleClasses()}>
               {title}
             </h2>
             <div className="space-y-1">
               {contentArray.map((line, i) => (
-                <p key={i} className="text-[16px] md:text-[18px] text-white/85 leading-tight">
+                <p key={i} className={getBodyClasses()}>
                   {line}
                 </p>
               ))}

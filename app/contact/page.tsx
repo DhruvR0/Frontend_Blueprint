@@ -24,13 +24,13 @@ export default function ContactPage() {
       id: "email",
       title: "EMAIL",
       content: "HELLO@blueprint3dstudios.com",
-      initialPosition: { x: 530, y: 280 },
+      initialPosition: { x: 530, y: 200 },
     },
     {
       id: "address",
       title: "CONTACT FORM",
       content: [""],
-      initialPosition: { x: 850, y: 460 },
+      initialPosition: { x: 850, y: 300 },
     },
   ]);
 
