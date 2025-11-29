@@ -10,6 +10,7 @@ interface ProjectCardProps {
   project: Project;
   activeSlug: string | null;
   onSelect: (slug: string | null) => void;
+  noAspect?: boolean;
 }
 
 const cardVariants = {
@@ -22,14 +23,13 @@ const cardVariants = {
   },
 };
 
-export default function ProjectCard({ project, activeSlug, onSelect }: ProjectCardProps) {
+export default function ProjectCard({ project, activeSlug, onSelect, noAspect }: ProjectCardProps) {
   const prefersReducedMotion = useReducedMotion();
   const isDimmed = Boolean(activeSlug && activeSlug !== project.slug);
   const cardLayoutId = prefersReducedMotion ? undefined : `project-card-${project.slug}`;
   const mediaLayoutId = prefersReducedMotion ? undefined : `project-media-${project.slug}`;
   const overlayLayoutId = prefersReducedMotion ? undefined : `project-overlay-${project.slug}`;
   const titleLayoutId = prefersReducedMotion ? undefined : `project-title-${project.slug}`;
-  const categoryLayoutId = prefersReducedMotion ? undefined : `project-category-${project.slug}`;
 
   const hoverMotion = prefersReducedMotion
     ? undefined
@@ -71,18 +71,19 @@ export default function ProjectCard({ project, activeSlug, onSelect }: ProjectCa
         scale: isDimmed ? 0.98 : 1,
         transition: { duration: 0.25, ease: "easeOut" },
       }}
-      className="group"
+      className={`group ${noAspect ? 'h-full flex flex-col' : ''}`}
     >
-      <Link href={`/projects/${project.slug}`} prefetch legacyBehavior>
-        <motion.a
-          layoutId={cardLayoutId}
-          className="block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black"
-          whileHover={hoverMotion}
-          whileFocus={hoverMotion}
-          onPointerDown={handlePointerDown}
-          onKeyDown={handleKeyDown}
-        >
-          <div className="relative overflow-hidden aspect-[4/3] bg-gray-200 rounded-lg will-change-transform">
+      <div className={noAspect ? 'h-full flex flex-col' : ''}>
+        <Link href={`/projects/${project.slug}`} prefetch legacyBehavior>
+          <motion.a
+            layoutId={cardLayoutId}
+            className={`block focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-4 focus-visible:outline-black ${noAspect ? 'h-full flex flex-col' : ''}`}
+            whileHover={hoverMotion}
+            whileFocus={hoverMotion}
+            onPointerDown={handlePointerDown}
+            onKeyDown={handleKeyDown}
+          >
+            <div className={`relative overflow-hidden ${noAspect ? 'h-full flex-1' : 'aspect-[4/3]'} bg-gray-200 rounded-lg will-change-transform`}>
             <motion.div
               layoutId={mediaLayoutId}
               className="relative w-full h-full"
@@ -107,24 +108,18 @@ export default function ProjectCard({ project, activeSlug, onSelect }: ProjectCa
             <div className="absolute bottom-0 left-0 right-0 p-6 transform translate-y-full group-hover:translate-y-0 group-focus-within:translate-y-0 transition-transform duration-300 ease-out">
               <motion.h3
                 layoutId={titleLayoutId}
-                className="text-white text-xl font-bold mb-1"
+                className="text-white text-xl font-bold"
               >
                 {project.title}
               </motion.h3>
-              <motion.p
-                layoutId={categoryLayoutId}
-                className="text-white/80 text-sm"
-              >
-                {project.category}
-              </motion.p>
             </div>
           </div>
           <div className="mt-4 md:hidden">
-            <h3 className="text-xl font-bold mb-1">{project.title}</h3>
-            <p className="text-gray-600 text-sm">{project.category}</p>
+            <h3 className="text-xl font-bold">{project.title}</h3>
           </div>
         </motion.a>
       </Link>
+      </div>
     </motion.article>
   );
 }

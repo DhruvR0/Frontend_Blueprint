@@ -1,12 +1,14 @@
 "use client";
 
-import { motion } from "framer-motion";
+import { useState, useEffect } from "react";
+import { motion, AnimatePresence } from "framer-motion";
 import { ChevronDown } from "lucide-react";
 
 interface HeroSectionProps {
   title: string;
   subtitle?: string;
   backgroundImage?: string;
+  backgroundImages?: string[];
   backgroundVideo?: string;
 }
 
@@ -14,8 +16,28 @@ export default function HeroSection({
   title,
   subtitle,
   backgroundImage,
+  backgroundImages,
   backgroundVideo,
 }: HeroSectionProps) {
+  // Use backgroundImages array if provided, otherwise use single backgroundImage
+  const images = backgroundImages && backgroundImages.length > 0 
+    ? backgroundImages 
+    : backgroundImage 
+      ? [backgroundImage] 
+      : [];
+
+  const [currentImageIndex, setCurrentImageIndex] = useState(0);
+
+  useEffect(() => {
+    if (images.length <= 1) return;
+
+    const interval = setInterval(() => {
+      setCurrentImageIndex((prevIndex) => (prevIndex + 1) % images.length);
+    }, 2500); // Change every 2 seconds
+
+    return () => clearInterval(interval);
+  }, [images.length]);
+
   const scrollToContent = () => {
     window.scrollTo({ top: window.innerHeight, behavior: "smooth" });
   };
@@ -34,14 +56,25 @@ export default function HeroSection({
           <source src={backgroundVideo} type="video/mp4" />
         </video>
       ) : (
-        <div
-          className="absolute inset-0 w-full h-full bg-cover bg-center"
-          style={{
-            backgroundImage: backgroundImage
-              ? `url(${backgroundImage})`
-              : "linear-gradient(135deg, #000 0%, #333 100%)",
-          }}
-        />
+        <div className="absolute inset-0 w-full h-full">
+          {images.length > 0 && (
+            <AnimatePresence mode="wait">
+              <motion.div
+                key={currentImageIndex}
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                exit={{ opacity: 0 }}
+                transition={{ duration: 1 }}
+                className="absolute inset-0 w-full h-full bg-cover bg-center"
+                style={{
+                  backgroundImage: images[currentImageIndex]
+                    ? `url(${images[currentImageIndex]})`
+                    : "linear-gradient(135deg, #000 0%, #333 100%)",
+                }}
+              />
+            </AnimatePresence>
+          )}
+        </div>
       )}
       <div className="absolute inset-0 bg-black/40" />
 

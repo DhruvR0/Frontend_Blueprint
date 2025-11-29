@@ -1,184 +1,141 @@
 "use client";
 
-import { useState, useEffect } from "react";
-import { motion, useReducedMotion } from "framer-motion";
 import ProjectCard from "@/components/ProjectCard";
-import { projects, Project } from "@/utils/data";
-
-type Category = "All" | "Architecture" | "Interiors" | "Urban" | "Object";
-
-const containerVariants = {
-  hidden: {},
-  visible: (prefersReducedMotion: boolean) => ({
-    transition: prefersReducedMotion
-      ? undefined
-      : {
-          staggerChildren: 0.14,
-          delayChildren: 0.15,
-        },
-  }),
-};
+import { projects } from "@/utils/data";
 
 export default function ProjectsPage() {
-  const [selectedCategory, setSelectedCategory] = useState<Category>("All");
-  const [activeSlug, setActiveSlug] = useState<string | null>(null);
-  const prefersReducedMotion = useReducedMotion();
+  // Ensure we always have at least 7 cards for layout structure
+  const filled = [...projects];
+  while (filled.length < 7 && projects.length > 0) {
+    filled.push({
+      ...projects[0],
+      id: "placeholder-" + filled.length, 
+      title: "Coming Soon",
+      slug: "coming-soon-" + filled.length,
+    });
+  }
 
-  useEffect(() => {
-    if (!activeSlug) return;
-    const timeout = window.setTimeout(() => setActiveSlug(null), 800);
-    return () => window.clearTimeout(timeout);
-  }, [activeSlug]);
-
-  const categories: Category[] = ["All", "Architecture", "Interiors", "Urban", "Object"];
-
-  const filteredProjects =
-    selectedCategory === "All"
-      ? projects
-      : projects.filter((project) => project.category === selectedCategory);
+  // Safety check: if no projects, show message
+  if (filled.length === 0) {
+    return (
+      <div className="pt-20 bg-[#111] text-white min-h-screen flex items-center justify-center">
+        <p className="text-xl">No projects found.</p>
+      </div>
+    );
+  }
 
   return (
-    <div className="pt-20">
+    <div className="pt-20 bg-[#111] text-white min-h-screen relative z-10">
 
+      {/* GRID LAYOUT - Matching Reference Image */}
+      <section className="px-4 sm:px-6 lg:px-10 py-10">
+        <div className="max-w-[1800px] mx-auto">
 
-      {/* Filters */}
-      <section className="py-8 px-4 sm:px-6 lg:px-8 bg-white border-b sticky top-20 z-40">
-        <div className="max-w-7xl mx-auto">
-          <div className="flex flex-wrap gap-4 justify-center">
-            {categories.map((category) => (
-              <button
-                key={category}
-                onClick={() => setSelectedCategory(category)}
-                className={`px-6 py-2 rounded-full font-medium transition-all focus-visible:outline focus-visible:outline-2 focus-visible:outline-offset-2 focus-visible:outline-black ${
-                  selectedCategory === category
-                    ? "bg-black text-white"
-                    : "bg-gray-100 text-gray-700 hover:bg-gray-200"
-                }`}
-              >
-                {category}
-              </button>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* Projects Grid */}
-      <section className="py-16 px-4 sm:px-6 lg:px-8 bg-white">
-        <div className="max-w-7xl mx-auto">
-          {filteredProjects.length > 0 ? (
-            <div className="space-y-6 md:space-y-8">
-              {(() => {
-                // Group projects into rows following pattern: 3, 2, 2, 3, 2, 2...
-                const rows: Project[][] = [];
-                let currentRow: Project[] = [];
-                let rowIndex = 0;
-                
-                filteredProjects.forEach((project) => {
-                  currentRow.push(project);
-                  
-                  // Determine row size based on pattern: row 0, 3, 6... = 3 cards, others = 2 cards
-                  const shouldBeThreeCards = rowIndex % 3 === 0;
-                  const rowSize = shouldBeThreeCards ? 3 : 2;
-                  
-                  if (currentRow.length === rowSize) {
-                    rows.push(currentRow);
-                    currentRow = [];
-                    rowIndex++;
-                  }
-                });
-                
-                // Add remaining projects
-                if (currentRow.length > 0) {
-                  rows.push(currentRow);
-                }
-                
-                return rows.map((row, idx) => {
-                  const isThreeCardRow = row.length === 3;
-                  
-                  // For 3-card rows, use flex with vertical offsets for staggered effect
-                  // For 2-card rows, use flex with vertical offsets to create staggered effect
-                  if (isThreeCardRow) {
-                    return (
-                      <motion.div
-                        key={idx}
-                        layout
-                        className="flex flex-col md:flex-row gap-4 md:gap-6 items-start"
-                        variants={containerVariants}
-                        initial={prefersReducedMotion ? undefined : "hidden"}
-                        animate="visible"
-                        custom={prefersReducedMotion}
-                      >
-                        {row.map((project, cardIdx) => {
-                          // Add vertical offset: left card slightly up, middle stays, right card more down
-                          let verticalOffset = "";
-                          if (cardIdx === 0) {
-                            verticalOffset = "-mt-6 md:-mt-10"; // Left card up
-                          } else if (cardIdx === 1) {
-                            verticalOffset = ""; // Middle card stays
-                          } else {
-                            verticalOffset = "mt-12 md:mt-16"; // Right card down more
-                          }
-                          
-                          return (
-                            <div
-                              key={project.id}
-                              className={`flex-1 ${verticalOffset} transition-all duration-300`}
-                            >
-                              <ProjectCard
-                                project={project}
-                                activeSlug={activeSlug}
-                                onSelect={setActiveSlug}
-                                isLarge={false}
-                              />
-                            </div>
-                          );
-                        })}
-                      </motion.div>
-                    );
-                  } else {
-                    // 2-card rows with vertical offsets
-                    return (
-                      <motion.div
-                        key={idx}
-                        layout
-                        className="flex flex-col md:flex-row gap-4 md:gap-6 items-start"
-                        variants={containerVariants}
-                        initial={prefersReducedMotion ? undefined : "hidden"}
-                        animate="visible"
-                        custom={prefersReducedMotion}
-                      >
-                        {row.map((project, cardIdx) => {
-                          // Add vertical offset: first card slightly up, second card slightly down
-                          const verticalOffset = cardIdx === 0 ? "-mt-8 md:-mt-12" : "mt-8 md:mt-12";
-                          
-                          return (
-                            <div
-                              key={project.id}
-                              className={`flex-1 ${verticalOffset} transition-all duration-300`}
-                            >
-                              <ProjectCard
-                                project={project}
-                                activeSlug={activeSlug}
-                                onSelect={setActiveSlug}
-                                isLarge={true}
-                              />
-                            </div>
-                          );
-                        })}
-                      </motion.div>
-                    );
-                  }
-                });
-              })()}
-            </div>
-          ) : (
-            <div className="text-center py-16">
-              <p className="text-gray-500 text-lg">No projects found in this category.</p>
+          {/* ROW 1 - Three columns with vertical offset - Matching Reference */}
+          {filled[0] && filled[1] && filled[2] && (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 md:gap-6 mb-8 md:mb-16">
+              <div className="md:col-span-7 h-[400px] md:h-[520px] relative md:-mt-6">
+                <ProjectCard project={filled[0]} activeSlug={null} onSelect={() => {}} noAspect />
+                <div className="mt-3">
+                  <h3 className="text-white text-lg font-semibold">{filled[0].title}</h3>
+                  <p className="text-gray-400 text-sm">{filled[0].category}</p>
+                </div>
+              </div>
+              <div className="md:col-span-3 h-[350px] md:h-[420px] relative md:mt-32">
+                <ProjectCard project={filled[1]} activeSlug={null} onSelect={() => {}} noAspect />
+                <div className="mt-3">
+                  <h3 className="text-white text-lg font-semibold">{filled[1].title}</h3>
+                  <p className="text-gray-400 text-sm">{filled[1].category}</p>
+                </div>
+              </div>
+              <div className="md:col-span-2 h-[280px] md:h-[340px] relative md:mt-10">
+                <ProjectCard project={filled[2]} activeSlug={null} onSelect={() => {}} noAspect />
+                <div className="mt-3">
+                  <h3 className="text-white text-lg font-semibold">{filled[2].title}</h3>
+                  <p className="text-gray-400 text-sm">{filled[2].category}</p>
+                </div>
+              </div>
             </div>
           )}
+
+          {/* ROW 2 - Two columns staggered */}
+          {filled[3] && filled[4] && (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8 md:mb-16">
+              {/* Left card - MS WELLINGTON */}
+              <div className="md:col-span-4 h-[380px] md:h-[480px] relative md:-mt-12">
+                <ProjectCard project={filled[3]} activeSlug={null} onSelect={() => {}} noAspect />
+                <div className="mt-3">
+                  <h3 className="text-white text-lg font-semibold">{filled[3].title}</h3>
+                  <p className="text-gray-400 text-sm">{filled[3].category}</p>
+                </div>
+              </div>
+              <div className="md:col-span-8 h-[420px] md:h-[540px] relative md:mt-8">
+                <ProjectCard project={filled[4]} activeSlug={null} onSelect={() => {}} noAspect />
+                <div className="mt-3">
+                  <h3 className="text-white text-lg font-semibold">{filled[4].title}</h3>
+                  <p className="text-gray-400 text-sm">{filled[4].category}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* ROW 3 - Two columns reverse staggered */}
+          {filled[5] && filled[6] && (
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8 md:mb-16">
+              <div className="md:col-span-7 h-[400px] md:h-[520px] relative md:mt-4">
+                <ProjectCard project={filled[5]} activeSlug={null} onSelect={() => {}} noAspect />
+                <div className="mt-3">
+                  <h3 className="text-white text-lg font-semibold">{filled[5].title}</h3>
+                  <p className="text-gray-400 text-sm">{filled[5].category}</p>
+                </div>
+              </div>
+              <div className="md:col-span-5 h-[350px] md:h-[460px] relative md:-mt-8">
+                <ProjectCard project={filled[6]} activeSlug={null} onSelect={() => {}} noAspect />
+                <div className="mt-3">
+                  <h3 className="text-white text-lg font-semibold">{filled[6].title}</h3>
+                  <p className="text-gray-400 text-sm">{filled[6].category}</p>
+                </div>
+              </div>
+            </div>
+          )}
+
+          {/* Additional rows if more projects exist */}
+          {filled.slice(7).map((project, idx) => {
+            const position = idx % 3;
+            
+            if (position === 0 && filled[7 + idx + 1] && filled[7 + idx + 2]) {
+              // Repeat Row 1 pattern
+              return (
+                <div key={project.id} className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-8 md:mb-16">
+                  <div className="md:col-span-5 h-[400px] md:h-[500px] relative md:-mt-8">
+                    <ProjectCard project={filled[7 + idx]} activeSlug={null} onSelect={() => {}} noAspect />
+                    <div className="mt-3">
+                      <h3 className="text-white text-lg font-semibold">{filled[7 + idx].title}</h3>
+                      <p className="text-gray-400 text-sm">{filled[7 + idx].category}</p>
+                    </div>
+                  </div>
+                  <div className="md:col-span-4 h-[350px] md:h-[440px] relative md:mt-4">
+                    <ProjectCard project={filled[7 + idx + 1]} activeSlug={null} onSelect={() => {}} noAspect />
+                    <div className="mt-3">
+                      <h3 className="text-white text-lg font-semibold">{filled[7 + idx + 1].title}</h3>
+                      <p className="text-gray-400 text-sm">{filled[7 + idx + 1].category}</p>
+                    </div>
+                  </div>
+                  <div className="md:col-span-3 h-[280px] md:h-[360px] relative md:mt-12">
+                    <ProjectCard project={filled[7 + idx + 2]} activeSlug={null} onSelect={() => {}} noAspect />
+                    <div className="mt-3">
+                      <h3 className="text-white text-lg font-semibold">{filled[7 + idx + 2].title}</h3>
+                      <p className="text-gray-400 text-sm">{filled[7 + idx + 2].category}</p>
+                    </div>
+                  </div>
+                </div>
+              );
+            }
+            return null;
+          }).filter(Boolean)}
+
         </div>
       </section>
     </div>
   );
 }
-

@@ -59,7 +59,7 @@ export default function ContactPage() {
   return (
     <main className="relative w-full h-screen overflow-hidden">
       {/* Background */}
-      <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10 h-full w-full">
         <Image
           src="/images/urban-bistro-mississauga-dining-3.png"
           alt="Dark interior background"

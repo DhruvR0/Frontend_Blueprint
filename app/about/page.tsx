@@ -17,7 +17,7 @@ const windowBlueprint = [
     height: 520,
     position: { top: 60, left: 80 },
     render: () => (
-      <div className="relative h-full w-full">
+      <div className="relative h-full w-full flex-shrink-0">
         <Image
           src="https://images.unsplash.com/photo-1503386435953-66943ba0e08f?auto=format&fit=crop&w=1400&q=80"
           alt="Studio portrait"
@@ -68,8 +68,8 @@ export default function AboutPage() {
   }, []);
 
   return (
-    <div className="relative min-h-screen w-full overflow-hidden bg-black text-white">
-      <div className="absolute inset-0">
+    <div className="relative min-h-screen h-screen w-full overflow-hidden bg-black text-white">
+      <div className="absolute inset-0 h-full w-full">
         <Image
           src="https://images.unsplash.com/photo-1469474968028-56623f02e42e?auto=format&fit=crop&w=1920&q=80"
           alt="Studio background"
@@ -105,7 +105,7 @@ export default function AboutPage() {
                   scale: 1,
                   y: 0
                 }}
-                className={`mb-6 rounded border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-sm ${
+                className={`mb-6 flex flex-col rounded border border-white/20 bg-black/85 text-white shadow-2xl backdrop-blur-sm ${
                   isMobile ? "relative w-full" : "md:absolute"
                 }`}
                 style={{
@@ -114,7 +114,7 @@ export default function AboutPage() {
                   ...(isMobile ? {} : { top: win.position.top, left: win.position.left })
                 }}
               >
-                <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-[0.65rem] uppercase tracking-[0.35em]">
+                <div className="flex items-center justify-between border-b border-white/10 px-4 py-3 text-[0.65rem] uppercase tracking-[0.35em] flex-shrink-0">
                   <span>{win.title}</span>
                   <div className="flex items-center gap-1">
                     <span className="inline-flex h-6 w-6 items-center justify-center rounded border border-white/20 text-base leading-none">
@@ -122,7 +122,9 @@ export default function AboutPage() {
                     </span>
                   </div>
                 </div>
-                {win.render()}
+                <div className="flex-1 min-h-0">
+                  {win.render()}
+                </div>
               </motion.div>
             ))}
           </div>

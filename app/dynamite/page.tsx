@@ -106,9 +106,9 @@ export default function DynamitePage() {
   };
 
   return (
-    <div className="relative min-h-screen text-white">
+    <div className="relative min-h-screen h-screen text-white">
       {/* BACKGROUND */}
-      <div className="absolute inset-0 -z-10">
+      <div className="absolute inset-0 -z-10 h-full w-full">
         <Image
           src="/images/urban-bistro-mississauga-dining-2.png"
           alt=""
